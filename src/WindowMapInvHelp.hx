@@ -1,6 +1,8 @@
 import rm.windows.Window_Base;
 import rm.core.Rectangle;
 
+using WindowExtensions;
+
 @:keep
 @:native('WindowMapInvHelp')
 @:expose('WindowMapInvHelp')
@@ -19,6 +21,7 @@ class WindowMapInvHelp extends Window_Base {
 
   public function setHelpText(text: String) {
     this._helpText = text;
+    this.refresh();
   }
 
   public function refresh() {
@@ -34,5 +37,20 @@ class WindowMapInvHelp extends Window_Base {
     #else
     this.drawTextEx(this._helpText, 0, 0, this.contentsWidth());
     #end
+  }
+
+  public override function update() {
+    super.update();
+    this.processVisible();
+  }
+
+  public function processVisible() {
+    if (this._helpText.length > 0 && !this.isOpenOrVisible()) {
+      this.show();
+      this.open();
+    } else {
+      this.close();
+      this.hide();
+    }
   }
 }

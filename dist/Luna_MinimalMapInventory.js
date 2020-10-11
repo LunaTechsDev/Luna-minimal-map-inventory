@@ -2,7 +2,7 @@
 // Luna_MinimalMapInventory.js
 //=============================================================================
 //=============================================================================
-// Build Date: 2020-10-10 20:56:54
+// Build Date: 2020-10-10 21:05:43
 //=============================================================================
 //=============================================================================
 // Made with LunaTea -- Haxe
@@ -196,6 +196,10 @@ class LunaMMInventory {
 		}
 		let _Scene_Map_processMMInventory = Scene_Map.prototype.processMMInventory
 		Scene_Map.prototype.processMMInventory = function() {
+			let item = this._lmmInventoryWindow.getHoveredItem(TouchInput.x,TouchInput.y)
+			if(item != null) {
+				this._lmmInventoryHelpWindow.setHelpText(item.object().description)
+			}
 		}
 	}
 	static params() {
@@ -257,9 +261,23 @@ class Scene_$Map extends Scene_Map {
 		this._lmmInventoryConfirmWindow.hide()
 	}
 	processMMInventory() {
+		let item = this._lmmInventoryWindow.getHoveredItem(TouchInput.x,TouchInput.y)
+		if(item != null) {
+			this._lmmInventoryHelpWindow.setHelpText(item.object().description)
+		}
 	}
 }
 Scene_$Map.__name__ = true
+class WindowExtensions {
+	static isOpenOrVisible(win) {
+		if(!win.isOpen()) {
+			return win.visible;
+		} else {
+			return true;
+		}
+	}
+}
+WindowExtensions.__name__ = true
 class WindowMapInvConfirm extends Window_Command {
 	constructor(x,y,width,height) {
 		let rect = new Rectangle(x,y,width,height)
@@ -281,6 +299,7 @@ class WindowMapInvHelp extends Window_Base {
 	}
 	setHelpText(text) {
 		this._helpText = text
+		this.refresh()
 	}
 	refresh() {
 		if(this.contents != null) {
@@ -290,6 +309,19 @@ class WindowMapInvHelp extends Window_Base {
 	}
 	paintHelpText() {
 		this.drawTextEx(this._helpText,0,0,this.contentsWidth())
+	}
+	update() {
+		super.update()
+		this.processVisible()
+	}
+	processVisible() {
+		if(this._helpText.length > 0 && !WindowExtensions.isOpenOrVisible(this)) {
+			this.show()
+			this.open()
+		} else {
+			this.close()
+			this.hide()
+		}
 	}
 }
 $hx_exports["WindowMapInvHelp"] = WindowMapInvHelp

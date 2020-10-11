@@ -1,3 +1,4 @@
+import rm.core.TouchInput;
 import rm.types.RPG.EquipItem;
 import rm.Globals;
 import rm.scenes.Scene_Map as RmScene_Map;
@@ -74,6 +75,9 @@ class Scene_Map extends RmScene_Map {
 
   public function processMMInventory() {
     // Inventory Window Hovered Over Item
-    if (false) {}
+    var item = this._lmmInventoryWindow.getHoveredItem(cast TouchInput.x, cast TouchInput.y);
+    if (item != null) {
+      this._lmmInventoryHelpWindow.setHelpText(item.object().description);
+    }
   }
 }
