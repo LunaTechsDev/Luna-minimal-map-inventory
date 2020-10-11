@@ -4,6 +4,7 @@ import rm.windows.Window_Base;
 import rm.core.Rectangle;
 
 using Lambda;
+using core.NumberExtensions;
 
 // TODO: Add Hover Functionality
 @:keep
@@ -24,6 +25,11 @@ class WindowMapInventory extends Window_Base {
     var rect = new Rectangle(x, y, width, height);
     super(rect);
     #end
+  }
+
+  // Will need to add meta data around item
+  public function currentItem(): Game_Item {
+    return this._items[this._selectionIndex];
   }
 
   public function refresh() {
@@ -51,7 +57,13 @@ class WindowMapInventory extends Window_Base {
     // Draw Cell Background
     // TODO: Update Bitmap to allow for drawing rectangles
     // TODO: Update drawIcon to accept Integer
-    this.drawRect(rect.x, rect.y, rect.width, rect.height);
+    var borderSize = 2;
+    this.contents.fillRect(rect.x, rect.y, rect.width, rect.height, 'white');
+    this.contents.clearRect(rect.x
+      + borderSize, rect.y
+      + borderSize, rect.width
+      - borderSize, rect.height
+      - borderSize);
   }
 
   public function paintCellItemIcon(rect: Rectangle, index) {
@@ -69,5 +81,18 @@ class WindowMapInventory extends Window_Base {
     // Don't need to calculate y since row max is always 1
     var rectangle = new Rectangle(x, 0, this.cellWidth, this.cellHeight);
     return rectangle;
+  }
+
+  public function getHoveredItem(x: Int, y: Int): Null<Game_Item> {
+    var item = null;
+    for (index in 0...this._maxPageItems) {
+      var internalIndex = index % this._maxPageItems;
+      var rect = this.itemRectForCell(index);
+      if (x.withinRangef(rect.x, rect.width) && y.withinRangef(rect.y, rect.height)) {
+        // Means it's in an item cell so get the item
+        item = this._items[(this.page * this._maxPageItems) + index];
+      }
+    }
+    return item;
   }
 }

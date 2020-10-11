@@ -1,6 +1,6 @@
 import rm.core.JsonEx;
 import macros.FnMacros;
-import rm.scenes.Scene_Title;
+import rm.scenes.Scene_Map as RmScene_Map;
 import js.Syntax;
 import pixi.interaction.EventEmitter;
 import core.Amaryllis;
@@ -14,19 +14,7 @@ using core.NumberExtensions;
 using StringTools;
 using utils.Fn;
 
-typedef LinkWindowInfo = {
-  var x: Int;
-  var y: Int;
-  var width: Int;
-  var height: Int;
-  var backgroundType: Int;
-  var link: String;
-  var image: String;
-}
-
-typedef LParams = {
-  var linkWindows: Array<LinkWindowInfo>;
-}
+typedef LParams = {}
 
 @:native('LunaMMInventory')
 @:expose('LunaMMInventory')
@@ -43,6 +31,7 @@ class Main {
     trace(Params);
 
     Comment.title('Scene_Map');
+    FnMacros.jsPatch(true, RmScene_Map, Scene_Map);
   }
 
   public static function params() {
