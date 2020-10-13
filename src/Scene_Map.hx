@@ -1,3 +1,5 @@
+import rm.managers.DataManager;
+import rm.core.Graphics;
 import rm.core.TouchInput;
 import rm.types.RPG.EquipItem;
 import rm.Globals;
@@ -11,26 +13,32 @@ class Scene_Map extends RmScene_Map {
 
   public override function createAllWindows() {
     // super.createAllWindows();
-    untyped Scene_Map_createAllWindows.call(this);
+    untyped _Scene_Map_createAllWindows.call(this);
     this.createMapInvWindow();
     this.createMapInvHelpWindow();
     this.createMapInvConfirmWindow();
   }
 
   public function createMapInvWindow() {
-    this._lmmInventoryWindow = new WindowMapInventory(0, 0, 400, 75);
+    var centerX = Graphics.width / 2;
+    trace(centerX);
+    var width = 400;
+    this._lmmInventoryWindow = new WindowMapInventory(cast centerX - width / 2, 300, width, 75);
     this.addWindow(this._lmmInventoryWindow);
+    this._lmmInventoryWindow.hide();
   }
 
   public function createMapInvHelpWindow() {
     this._lmmInventoryHelpWindow = new WindowMapInvHelp(0, 0, 200, 200);
     this.addWindow(this._lmmInventoryHelpWindow);
+    this._lmmInventoryHelpWindow.hide();
   }
 
   public function createMapInvConfirmWindow() {
     this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0, 0, 200, 200);
     this.setConfirmWindowHandlers();
     this.addWindow(this._lmmInventoryConfirmWindow);
+    this._lmmInventoryConfirmWindow.hide();
   }
 
   public function setConfirmWindowHandlers() {
@@ -44,10 +52,10 @@ class Scene_Map extends RmScene_Map {
     // Shouldn't happen
     if (currentItem != null) {
       switch (currentItem) {
-        case _.isUsableItem() => true:
-          Globals.GameParty.members()[0].useItem(cast currentItem.object());
-        case _.isEquipItem() => true:
-          var equipItem: EquipItem = cast currentItem.object();
+        case DataManager.isItem(_) => true:
+          Globals.GameParty.members()[0].useItem(cast currentItem);
+        case DataManager.isArmor(_) || DataManager.isWeapon(_) => true:
+          var equipItem: EquipItem = cast currentItem;
           Globals.GameParty.members()[0].changeEquip(equipItem.etypeId, equipItem);
         case _:
           // Do nothing
@@ -69,7 +77,7 @@ class Scene_Map extends RmScene_Map {
 
   public override function update() {
     // super.update();
-    untyped Scene_Map_update.call(this);
+    untyped _Scene_Map_update.call(this);
     this.processMMInventory();
   }
 
@@ -77,7 +85,12 @@ class Scene_Map extends RmScene_Map {
     // Inventory Window Hovered Over Item
     var item = this._lmmInventoryWindow.getHoveredItem(cast TouchInput.x, cast TouchInput.y);
     if (item != null) {
-      this._lmmInventoryHelpWindow.setHelpText(item.object().description);
+      trace('Found Item', item.description);
+      this._lmmInventoryHelpWindow.setHelpText(item.description);
+      this._lmmInventoryHelpWindow.show();
+      this._lmmInventoryHelpWindow.open();
+    } else {
+      this._lmmInventoryHelpWindow.close();
     }
   }
 }

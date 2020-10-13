@@ -2,7 +2,7 @@
 // Luna_MinimalMapInventory.js
 //=============================================================================
 //=============================================================================
-// Build Date: 2020-10-10 21:05:43
+// Build Date: 2020-10-12 20:24:23
 //=============================================================================
 //=============================================================================
 // Made with LunaTea -- Haxe
@@ -19,6 +19,11 @@
 @text Link Windows
 @desc The list of link windows on your title screen.
 @type struct<LinkWindow>[]
+
+@param maxPageItems
+@text Max Page Items
+@desc The maximum numer of page items
+@default 8
 
 @help
 
@@ -105,6 +110,19 @@ class EReg {
 	}
 }
 EReg.__name__ = true
+class Game_$Player extends Game_Player {
+	constructor() {
+		super();
+	}
+	canMove() {
+		if(LunaMMInventory.isInventoryOpen()) {
+			return false;
+		} else {
+			return _Game_Player_canMove.call(this);
+		}
+	}
+}
+Game_$Player.__name__ = true
 class LunaMMInventory {
 	static main() {
 		let _g = []
@@ -113,16 +131,14 @@ class LunaMMInventory {
 		while(_g1 < _g2.length) {
 			let v = _g2[_g1]
 			++_g1
-			if(new EReg("<LunaLinks>","ig").match(v.description)) {
+			if(new EReg("<LunaMMI>","ig").match(v.description)) {
 				_g.push(v)
 			}
 		}
 		let plugin = _g[0]
 		let params = plugin.parameters
-		LunaMMInventory.Params = { linkWindows : JsonEx.parse(params["linkWindows"]).map(function(win) {
-			return JsonEx.parse(win);
-		})}
-		console.log("src/Main.hx:31:",LunaMMInventory.Params)
+		LunaMMInventory.Params = { maxPageItems : parseInt(params["maxPageItems"],10)}
+		haxe_Log.trace(LunaMMInventory.Params,{ fileName : "src/Main.hx", lineNumber : 35, className : "Main", methodName : "main"})
 		
 //=============================================================================
 // Scene_Map
@@ -136,26 +152,32 @@ class LunaMMInventory {
 		Scene_Map.prototype._lmmInventoryConfirmWindow = null
 		let _Scene_Map_createAllWindows = Scene_Map.prototype.createAllWindows
 		Scene_Map.prototype.createAllWindows = function() {
-			Scene_Map_createAllWindows.call(this)
+			_Scene_Map_createAllWindows.call(this)
 			this.createMapInvWindow()
 			this.createMapInvHelpWindow()
 			this.createMapInvConfirmWindow()
 		}
 		let _Scene_Map_createMapInvWindow = Scene_Map.prototype.createMapInvWindow
 		Scene_Map.prototype.createMapInvWindow = function() {
-			this._lmmInventoryWindow = new WindowMapInventory(0,0,400,75)
+			let centerX = Graphics.width / 2
+			haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 24, className : "Scene_Map", methodName : "createMapInvWindow"})
+			let width = 400
+			this._lmmInventoryWindow = new WindowMapInventory(centerX - width / 2,300,width,75)
 			this.addWindow(this._lmmInventoryWindow)
+			this._lmmInventoryWindow.hide()
 		}
 		let _Scene_Map_createMapInvHelpWindow = Scene_Map.prototype.createMapInvHelpWindow
 		Scene_Map.prototype.createMapInvHelpWindow = function() {
 			this._lmmInventoryHelpWindow = new WindowMapInvHelp(0,0,200,200)
 			this.addWindow(this._lmmInventoryHelpWindow)
+			this._lmmInventoryHelpWindow.hide()
 		}
 		let _Scene_Map_createMapInvConfirmWindow = Scene_Map.prototype.createMapInvConfirmWindow
 		Scene_Map.prototype.createMapInvConfirmWindow = function() {
 			this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0,0,200,200)
 			this.setConfirmWindowHandlers()
 			this.addWindow(this._lmmInventoryConfirmWindow)
+			this._lmmInventoryConfirmWindow.hide()
 		}
 		let _Scene_Map_setConfirmWindowHandlers = Scene_Map.prototype.setConfirmWindowHandlers
 		Scene_Map.prototype.setConfirmWindowHandlers = function() {
@@ -167,12 +189,12 @@ class LunaMMInventory {
 			let currentItem = this._lmmInventoryWindow.currentItem()
 			if(currentItem != null) {
 				let _hx_tmp
-				if(currentItem.isUsableItem() == true) {
-					$gameParty.members()[0].useItem(currentItem.object())
+				if(DataManager.isItem(currentItem) == true) {
+					$gameParty.members()[0].useItem(currentItem)
 				} else {
-					_hx_tmp = currentItem.isEquipItem()
+					_hx_tmp = DataManager.isArmor(currentItem) || DataManager.isWeapon(currentItem)
 					if(_hx_tmp == true) {
-						let equipItem = currentItem.object()
+						let equipItem = currentItem
 						$gameParty.members()[0].changeEquip(equipItem.etypeId,equipItem)
 					}
 				}
@@ -191,19 +213,69 @@ class LunaMMInventory {
 		}
 		let _Scene_Map_update = Scene_Map.prototype.update
 		Scene_Map.prototype.update = function() {
-			Scene_Map_update.call(this)
+			_Scene_Map_update.call(this)
 			this.processMMInventory()
 		}
 		let _Scene_Map_processMMInventory = Scene_Map.prototype.processMMInventory
 		Scene_Map.prototype.processMMInventory = function() {
 			let item = this._lmmInventoryWindow.getHoveredItem(TouchInput.x,TouchInput.y)
 			if(item != null) {
-				this._lmmInventoryHelpWindow.setHelpText(item.object().description)
+				haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 88, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
+				this._lmmInventoryHelpWindow.setHelpText(item.description)
+				this._lmmInventoryHelpWindow.show()
+				this._lmmInventoryHelpWindow.open()
+			} else {
+				this._lmmInventoryHelpWindow.close()
+			}
+		}
+		
+//=============================================================================
+// Game_Player
+//=============================================================================
+      
+		let _Game_Player_canMove = Game_Player.prototype.canMove
+		Game_Player.prototype.canMove = function() {
+			if(LunaMMInventory.isInventoryOpen()) {
+				return false;
+			} else {
+				return _Game_Player_canMove.call(this);
 			}
 		}
 	}
 	static params() {
 		return LunaMMInventory.Params;
+	}
+	static getAllItems() {
+	}
+	static isInventoryOpen() {
+		let scene = SceneManager._scene
+		if(scene.hasOwnProperty("_lmmInventoryWindow")) {
+			let win = scene._lmmInventoryWindow
+			if(win.isOpen()) {
+				return win.visible;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+	static openInventory() {
+		haxe_Log.trace("Open minimal inventory",{ fileName : "src/Main.hx", lineNumber : 60, className : "Main", methodName : "openInventory"})
+		let scene = SceneManager._scene
+		if(scene.hasOwnProperty("_lmmInventoryWindow")) {
+			scene._lmmInventoryWindow.setItems($gameParty.items())
+			scene._lmmInventoryWindow.show()
+			scene._lmmInventoryWindow.open()
+		}
+	}
+	static closeInventory() {
+		haxe_Log.trace("Close minimal inventory",{ fileName : "src/Main.hx", lineNumber : 71, className : "Main", methodName : "closeInventory"})
+		let scene = SceneManager._scene
+		if(scene.hasOwnProperty("_lmmInventoryWindow")) {
+			scene._lmmInventoryWindow.close()
+			scene._lmmInventoryWindow.hide()
+		}
 	}
 }
 $hx_exports["LunaMMInventory"] = LunaMMInventory
@@ -214,23 +286,28 @@ class Scene_$Map extends Scene_Map {
 		super();
 	}
 	createAllWindows() {
-		Scene_Map_createAllWindows.call(this)
+		_Scene_Map_createAllWindows.call(this)
 		this.createMapInvWindow()
 		this.createMapInvHelpWindow()
 		this.createMapInvConfirmWindow()
 	}
 	createMapInvWindow() {
-		this._lmmInventoryWindow = new WindowMapInventory(0,0,400,75)
+		let centerX = Graphics.width / 2
+		haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 24, className : "Scene_Map", methodName : "createMapInvWindow"})
+		this._lmmInventoryWindow = new WindowMapInventory(centerX - 200.,300,400,75)
 		this.addWindow(this._lmmInventoryWindow)
+		this._lmmInventoryWindow.hide()
 	}
 	createMapInvHelpWindow() {
 		this._lmmInventoryHelpWindow = new WindowMapInvHelp(0,0,200,200)
 		this.addWindow(this._lmmInventoryHelpWindow)
+		this._lmmInventoryHelpWindow.hide()
 	}
 	createMapInvConfirmWindow() {
 		this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0,0,200,200)
 		this.setConfirmWindowHandlers()
 		this.addWindow(this._lmmInventoryConfirmWindow)
+		this._lmmInventoryConfirmWindow.hide()
 	}
 	setConfirmWindowHandlers() {
 		this._lmmInventoryConfirmWindow.setHandler("yes",$bind(this,this.confirmItemUse))
@@ -240,12 +317,12 @@ class Scene_$Map extends Scene_Map {
 		let currentItem = this._lmmInventoryWindow.currentItem()
 		if(currentItem != null) {
 			let _hx_tmp
-			if(currentItem.isUsableItem() == true) {
-				$gameParty.members()[0].useItem(currentItem.object())
+			if(DataManager.isItem(currentItem) == true) {
+				$gameParty.members()[0].useItem(currentItem)
 			} else {
-				_hx_tmp = currentItem.isEquipItem()
+				_hx_tmp = DataManager.isArmor(currentItem) || DataManager.isWeapon(currentItem)
 				if(_hx_tmp == true) {
-					let equipItem = currentItem.object()
+					let equipItem = currentItem
 					$gameParty.members()[0].changeEquip(equipItem.etypeId,equipItem)
 				}
 			}
@@ -263,18 +340,27 @@ class Scene_$Map extends Scene_Map {
 	processMMInventory() {
 		let item = this._lmmInventoryWindow.getHoveredItem(TouchInput.x,TouchInput.y)
 		if(item != null) {
-			this._lmmInventoryHelpWindow.setHelpText(item.object().description)
+			haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 88, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
+			this._lmmInventoryHelpWindow.setHelpText(item.description)
+			this._lmmInventoryHelpWindow.show()
+			this._lmmInventoryHelpWindow.open()
+		} else {
+			this._lmmInventoryHelpWindow.close()
 		}
 	}
 }
 Scene_$Map.__name__ = true
+class Std {
+	static string(s) {
+		return js_Boot.__string_rec(s,"");
+	}
+}
+Std.__name__ = true
 class WindowExtensions {
-	static isOpenOrVisible(win) {
-		if(!win.isOpen()) {
-			return win.visible;
-		} else {
-			return true;
-		}
+	static canvasToLocal(win) {
+		let touchPos = new PIXI.Point(TouchInput.x,TouchInput.y)
+		let localPos = win.worldTransform.applyInverse(touchPos)
+		return localPos;
 	}
 }
 WindowExtensions.__name__ = true
@@ -312,10 +398,9 @@ class WindowMapInvHelp extends Window_Base {
 	}
 	update() {
 		super.update()
-		this.processVisible()
 	}
 	processVisible() {
-		if(this._helpText.length > 0 && !WindowExtensions.isOpenOrVisible(this)) {
+		if(this._helpText.length > 0 && !(this.isOpen() || this.visible)) {
 			this.show()
 			this.open()
 		} else {
@@ -330,12 +415,33 @@ class WindowMapInventory extends Window_Base {
 	constructor(x,y,width,height) {
 		let rect = new Rectangle(x,y,width,height)
 		super(rect);
+		this._items = []
+		this._selectionIndex = -1
+		this.page = 0
+		this._maxPageItems = LunaMMInventory.Params.maxPageItems
+		this.cellWidth = 48
+		this.cellHeight = 48
+		this.borderSize = 2
+		this.horizontalSpacing = 4
+	}
+	drawIcon(iconIndex,x,y) {
+		let bitmap = ImageManager.loadSystem("IconSet")
+		let pw = ImageManager.iconWidth
+		let ph = ImageManager.iconHeight
+		let sx = iconIndex % 16 * pw
+		let sy = Math.floor(iconIndex / 16) * ph
+		this.contents.blt(bitmap,sx,sy,pw,ph,x,y,this.cellWidth - this.borderSize * 2,this.cellHeight - this.borderSize * 2)
+	}
+	setItems(items) {
+		this._items = items
+		this.refresh()
 	}
 	currentItem() {
 		return this._items[this._selectionIndex];
 	}
 	refresh() {
 		if(this.contents != null) {
+			haxe_Log.trace("Paint All Items",{ fileName : "src/WindowMapInventory.hx", lineNumber : 79, className : "WindowMapInventory", methodName : "refresh"})
 			this.contents.clear()
 			this.paintAllItems()
 		}
@@ -357,27 +463,38 @@ class WindowMapInventory extends Window_Base {
 	}
 	paintCell(rect) {
 		this.contents.fillRect(rect.x,rect.y,rect.width,rect.height,"white")
-		this.contents.clearRect(rect.x + 2,rect.y + 2,rect.width - 2,rect.height - 2)
+		this.contents.clearRect(rect.x + this.borderSize,rect.y + this.borderSize,rect.width - this.borderSize * 2,rect.height - this.borderSize * 2)
 	}
 	paintCellItemIcon(rect,index) {
 		let item = this._items[index]
-		this.drawIcon(item.object().iconIndex,rect.x,rect.y)
+		if(item != null) {
+			this.drawIcon(item.iconIndex,rect.x + this.borderSize,rect.y + this.borderSize)
+		}
 	}
 	itemRectForCell(index) {
 		let internalIndex = index % this._maxPageItems
+		let spacing = this.horizontalSpacing * internalIndex
 		let x = this.cellWidth * internalIndex
-		console.log("src/WindowMapInventory.hx:80:","X Position " + x)
-		let rectangle = new Rectangle(x,0,this.cellWidth,this.cellHeight)
+		let rectangle = new Rectangle(x + spacing,0,this.cellWidth,this.cellHeight)
 		return rectangle;
 	}
 	getHoveredItem(x,y) {
 		let item = null
+		let pos = WindowExtensions.canvasToLocal(this)
 		let _g = 0
 		let _g1 = this._maxPageItems
 		while(_g < _g1) {
 			let index = _g++
 			let rect = this.itemRectForCell(index)
-			if(x >= rect.x && x <= rect.width && (y >= rect.y && y <= rect.height)) {
+			let tmp
+			let num = pos.x
+			if(num >= rect.x && num <= rect.width + rect.x) {
+				let num = pos.y
+				tmp = num >= rect.y && num <= rect.height
+			} else {
+				tmp = false
+			}
+			if(tmp) {
 				item = this._items[this.page * this._maxPageItems + index]
 			}
 		}
@@ -386,6 +503,32 @@ class WindowMapInventory extends Window_Base {
 }
 $hx_exports["WindowMapInventory"] = WindowMapInventory
 WindowMapInventory.__name__ = true
+class haxe_Log {
+	static formatOutput(v,infos) {
+		let str = Std.string(v)
+		if(infos == null) {
+			return str;
+		}
+		let pstr = infos.fileName + ":" + infos.lineNumber
+		if(infos.customParams != null) {
+			let _g = 0
+			let _g1 = infos.customParams
+			while(_g < _g1.length) {
+				let v = _g1[_g]
+				++_g
+				str += ", " + Std.string(v);
+			}
+		}
+		return pstr + ": " + str;
+	}
+	static trace(v,infos) {
+		let str = haxe_Log.formatOutput(v,infos)
+		if(typeof(console) != "undefined" && console.log != null) {
+			console.log(str)
+		}
+	}
+}
+haxe_Log.__name__ = true
 class haxe_iterators_ArrayIterator {
 	constructor(array) {
 		this.current = 0

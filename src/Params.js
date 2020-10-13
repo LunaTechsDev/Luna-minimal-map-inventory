@@ -9,6 +9,11 @@
 @desc The list of link windows on your title screen.
 @type struct<LinkWindow>[]
 
+@param maxPageItems
+@text Max Page Items
+@desc The maximum numer of page items
+@default 8
+
 @help
 
 A plugin that creates a inventory menu on the map scene<LunaMMI>.

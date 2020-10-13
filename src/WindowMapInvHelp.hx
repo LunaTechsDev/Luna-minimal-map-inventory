@@ -41,7 +41,7 @@ class WindowMapInvHelp extends Window_Base {
 
   public override function update() {
     super.update();
-    this.processVisible();
+    // this.processVisible();
   }
 
   public function processVisible() {

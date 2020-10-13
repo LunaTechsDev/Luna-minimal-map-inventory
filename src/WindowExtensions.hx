@@ -15,7 +15,24 @@ class WindowExtensions {
     #end
   }
 
-  public static function isOpenOrVisible(win: Window_Base) {
+  public static function canvasToLocal(win: Window_Base): Point {
+    #if compileMV
+    var x = win.canvasToLocalX(TouchInput.x);
+    var y = win.canvasToLocalY(TouchInput.y);
+
+    return new rm.core.Point(x, y);
+    #else
+    var touchPos = new Point(TouchInput.x, TouchInput.y);
+    var localPos = win.worldTransform.applyInverse(touchPos);
+    return localPos;
+    #end
+  }
+
+  public static inline function isOpenOrVisible(win: Window_Base) {
     return win.isOpen() || win.visible;
+  }
+
+  public static inline function isOpenAndVisible(win: Window_Base) {
+    return win.isOpen() && win.visible;
   }
 }
