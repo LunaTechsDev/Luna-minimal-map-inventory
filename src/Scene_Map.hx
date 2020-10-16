@@ -1,3 +1,5 @@
+import rm.types.RPG.BaseItem;
+import Types.InvEvents;
 import rm.managers.DataManager;
 import rm.core.Graphics;
 import rm.core.TouchInput;
@@ -17,6 +19,12 @@ class Scene_Map extends RmScene_Map {
     this.createMapInvWindow();
     this.createMapInvHelpWindow();
     this.createMapInvConfirmWindow();
+  }
+
+  public override function create() {
+    // super.create();
+    untyped _Scene_Map_create.call(this);
+    this.setupMMInventoryEvents();
   }
 
   public function createMapInvWindow() {
@@ -83,7 +91,8 @@ class Scene_Map extends RmScene_Map {
 
   public function processMMInventory() {
     // Inventory Window Hovered Over Item
-    var item = this._lmmInventoryWindow.getHoveredItem(cast TouchInput.x, cast TouchInput.y);
+    // var item = this._lmmInventoryWindow.getHoveredItem();
+    var item = this._lmmInventoryWindow.currentItem();
     if (item != null) {
       trace('Found Item', item.description);
       this._lmmInventoryHelpWindow.setHelpText(item.description);
@@ -92,5 +101,18 @@ class Scene_Map extends RmScene_Map {
     } else {
       this._lmmInventoryHelpWindow.close();
     }
+  }
+
+  public function setupMMInventoryEvents() {
+    this._lmmInventoryWindow.on(InvEvents.CANCELITEM, (_) -> {
+      this._lmmInventoryConfirmWindow.close();
+      this._lmmInventoryHelpWindow.close();
+      this._lmmInventoryWindow.close();
+    });
+
+    this._lmmInventoryWindow.on(InvEvents.CONFIRMITEM, (item: BaseItem) -> {
+      // Move Window to the proper position
+      this._lmmInventoryConfirmWindow.open();
+    });
   }
 }

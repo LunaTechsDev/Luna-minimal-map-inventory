@@ -2,7 +2,7 @@
 // Luna_MinimalMapInventoryMV.js
 //=============================================================================
 //=============================================================================
-// Build Date: 2020-10-12 20:24:23
+// Build Date: 2020-10-15 20:46:24
 //=============================================================================
 //=============================================================================
 // Made with LunaTea -- Haxe
@@ -157,10 +157,15 @@ class LunaMMInventory {
 			this.createMapInvHelpWindow()
 			this.createMapInvConfirmWindow()
 		}
+		let _Scene_Map_create = Scene_Map.prototype.create
+		Scene_Map.prototype.create = function() {
+			_Scene_Map_create.call(this)
+			this.setupMMInventoryEvents()
+		}
 		let _Scene_Map_createMapInvWindow = Scene_Map.prototype.createMapInvWindow
 		Scene_Map.prototype.createMapInvWindow = function() {
 			let centerX = Graphics.width / 2
-			haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 24, className : "Scene_Map", methodName : "createMapInvWindow"})
+			haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 32, className : "Scene_Map", methodName : "createMapInvWindow"})
 			let width = 400
 			this._lmmInventoryWindow = new WindowMapInventory(centerX - width / 2,300,width,75)
 			this.addWindow(this._lmmInventoryWindow)
@@ -218,15 +223,27 @@ class LunaMMInventory {
 		}
 		let _Scene_Map_processMMInventory = Scene_Map.prototype.processMMInventory
 		Scene_Map.prototype.processMMInventory = function() {
-			let item = this._lmmInventoryWindow.getHoveredItem(TouchInput.x,TouchInput.y)
+			let item = this._lmmInventoryWindow.currentItem()
 			if(item != null) {
-				haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 88, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
+				haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 97, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
 				this._lmmInventoryHelpWindow.setHelpText(item.description)
 				this._lmmInventoryHelpWindow.show()
 				this._lmmInventoryHelpWindow.open()
 			} else {
 				this._lmmInventoryHelpWindow.close()
 			}
+		}
+		let _Scene_Map_setupMMInventoryEvents = Scene_Map.prototype.setupMMInventoryEvents
+		Scene_Map.prototype.setupMMInventoryEvents = function() {
+			let _gthis = this
+			this._lmmInventoryWindow.on("cancelItem",function(_) {
+				_gthis._lmmInventoryConfirmWindow.close()
+				_gthis._lmmInventoryHelpWindow.close()
+				_gthis._lmmInventoryWindow.close()
+			})
+			this._lmmInventoryWindow.on("confirmItem",function(item) {
+				_gthis._lmmInventoryConfirmWindow.open()
+			})
 		}
 		
 //=============================================================================
@@ -293,7 +310,7 @@ class Scene_$Map extends Scene_Map {
 	}
 	createMapInvWindow() {
 		let centerX = Graphics.width / 2
-		haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 24, className : "Scene_Map", methodName : "createMapInvWindow"})
+		haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 32, className : "Scene_Map", methodName : "createMapInvWindow"})
 		this._lmmInventoryWindow = new WindowMapInventory(centerX - 200.,300,400,75)
 		this.addWindow(this._lmmInventoryWindow)
 		this._lmmInventoryWindow.hide()
@@ -338,15 +355,26 @@ class Scene_$Map extends Scene_Map {
 		this._lmmInventoryConfirmWindow.hide()
 	}
 	processMMInventory() {
-		let item = this._lmmInventoryWindow.getHoveredItem(TouchInput.x,TouchInput.y)
+		let item = this._lmmInventoryWindow.currentItem()
 		if(item != null) {
-			haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 88, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
+			haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 97, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
 			this._lmmInventoryHelpWindow.setHelpText(item.description)
 			this._lmmInventoryHelpWindow.show()
 			this._lmmInventoryHelpWindow.open()
 		} else {
 			this._lmmInventoryHelpWindow.close()
 		}
+	}
+	setupMMInventoryEvents() {
+		let _gthis = this
+		this._lmmInventoryWindow.on("cancelItem",function(_) {
+			_gthis._lmmInventoryConfirmWindow.close()
+			_gthis._lmmInventoryHelpWindow.close()
+			_gthis._lmmInventoryWindow.close()
+		})
+		this._lmmInventoryWindow.on("confirmItem",function(item) {
+			_gthis._lmmInventoryConfirmWindow.open()
+		})
 	}
 }
 Scene_$Map.__name__ = true
@@ -357,10 +385,10 @@ class Std {
 }
 Std.__name__ = true
 class WindowExtensions {
-	static canvasToLocal(win) {
-		let x = win.canvasToLocalX(TouchInput.x)
-		let y = win.canvasToLocalY(TouchInput.y)
-		return new Point(x,y);
+	static canvasToLocal(win,x,y) {
+		let x1 = win.canvasToLocalX(x)
+		let y1 = win.canvasToLocalY(y)
+		return new Point(x1,y1);
 	}
 }
 WindowExtensions.__name__ = true
@@ -420,6 +448,15 @@ class WindowMapInventory extends Window_Base {
 		this.cellHeight = 48
 		this.borderSize = 2
 		this.horizontalSpacing = 4
+		this.setupEvents()
+	}
+	setupEvents() {
+		let _gthis = this
+		this.on("selectItem",function(index) {
+			_gthis._selectionIndex = index
+			let rect = _gthis.itemRectForCell(index)
+			_gthis.setCursorRect(rect.x,rect.y,rect.width,rect.height)
+		})
 	}
 	drawIcon(iconIndex,x,y) {
 		let bitmap = ImageManager.loadSystem("IconSet")
@@ -427,7 +464,7 @@ class WindowMapInventory extends Window_Base {
 		let ph = Window_Base._iconHeight
 		let sx = iconIndex % 16 * pw
 		let sy = Math.floor(iconIndex / 16) * ph
-		this.contents.blt(bitmap,sx,sy,pw,ph,x,y,this.cellWidth - this.borderSize * 2,this.cellHeight - this.borderSize * 2)
+		this.contents.blt(bitmap,sx,sy,pw,ph,x,y,this.cellWidth - this.borderSize * 4,this.cellHeight - this.borderSize * 4)
 	}
 	setItems(items) {
 		this._items = items
@@ -438,7 +475,7 @@ class WindowMapInventory extends Window_Base {
 	}
 	refresh() {
 		if(this.contents != null) {
-			haxe_Log.trace("Paint All Items",{ fileName : "src/WindowMapInventory.hx", lineNumber : 79, className : "WindowMapInventory", methodName : "refresh"})
+			haxe_Log.trace("Paint All Items",{ fileName : "src/WindowMapInventory.hx", lineNumber : 92, className : "WindowMapInventory", methodName : "refresh"})
 			this.contents.clear()
 			this.paintAllItems()
 		}
@@ -465,7 +502,7 @@ class WindowMapInventory extends Window_Base {
 	paintCellItemIcon(rect,index) {
 		let item = this._items[index]
 		if(item != null) {
-			this.drawIcon(item.iconIndex,rect.x + this.borderSize,rect.y + this.borderSize)
+			this.drawIcon(item.iconIndex,rect.x + this.borderSize * 2,rect.y + this.borderSize * 2)
 		}
 	}
 	itemRectForCell(index) {
@@ -475,9 +512,42 @@ class WindowMapInventory extends Window_Base {
 		let rectangle = new Rectangle(x + spacing,0,this.cellWidth,this.cellHeight)
 		return rectangle;
 	}
-	getHoveredItem(x,y) {
+	getCurrentItem(index) {
 		let item = null
-		let pos = WindowExtensions.canvasToLocal(this)
+		item = this._items[this.page * this._maxPageItems + this._selectionIndex]
+		return item;
+	}
+	update() {
+		super.update()
+		this.processOkAndCancel()
+		this.processSelectionOfItemsKeyboard()
+		this.processSelectionOfItemMouse()
+	}
+	processOkAndCancel() {
+		let _hx_tmp
+		if(Input.isTriggered("ok") == true) {
+			this.emit("confirmItem",this.currentItem())
+		} else {
+			_hx_tmp = Input.isTriggered("cancel")
+			if(_hx_tmp == true) {
+				this.emit("cancelItem")
+			}
+		}
+	}
+	processSelectionOfItemsKeyboard() {
+		let _hx_tmp
+		if(Input.isTriggered("right") == true) {
+			this.emit("selectItem",this._selectionIndex + 1)
+		} else {
+			_hx_tmp = Input.isTriggered("left") && this._selectionIndex > 0
+			if(_hx_tmp == true) {
+				this.emit("selectItem",this._selectionIndex - 1)
+			}
+		}
+	}
+	processSelectionOfItemMouse() {
+		let item = null
+		let pos = WindowExtensions.canvasToLocal(this,TouchInput.x,TouchInput.y)
 		let _g = 0
 		let _g1 = this._maxPageItems
 		while(_g < _g1) {
@@ -493,6 +563,7 @@ class WindowMapInventory extends Window_Base {
 			}
 			if(tmp) {
 				item = this._items[this.page * this._maxPageItems + index]
+				this.emit("selectItem",index)
 			}
 		}
 		return item;

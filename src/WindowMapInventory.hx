@@ -1,3 +1,7 @@
+import rm.core.TouchInput;
+import rm.core.Input;
+import js.html.SelectElement;
+import Types.InvEvents;
 import rm.managers.ImageManager;
 import rm.types.RPG.BaseItem;
 import rm.objects.Game_Item;
@@ -38,6 +42,15 @@ class WindowMapInventory extends Window_Base {
     this.cellHeight = 48;
     this.borderSize = 2;
     this.horizontalSpacing = 4;
+    this.setupEvents();
+  }
+
+  public function setupEvents() {
+    this.on(InvEvents.SELECTITEM, (index: Int) -> {
+      this._selectionIndex = index;
+      var rect = this.itemRectForCell(index);
+      this.setCursorRect(rect.x, rect.y, rect.width, rect.height);
+    });
   }
 
   public override function drawIcon(iconIndex: Float, x: Float, y: Float) {
@@ -59,8 +72,8 @@ class WindowMapInventory extends Window_Base {
       ph,
       x,
       y,
-      this.cellWidth - this.borderSize * 2,
-      this.cellHeight - this.borderSize * 2
+      this.cellWidth - this.borderSize * 4,
+      this.cellHeight - this.borderSize * 4
     );
   }
 
@@ -116,7 +129,7 @@ class WindowMapInventory extends Window_Base {
     var item = this._items[index];
     // Update to draw Icon of any size
     if (item != null) {
-      this.drawIcon(item.iconIndex, rect.x + this.borderSize, rect.y + this.borderSize);
+      this.drawIcon(item.iconIndex, rect.x + this.borderSize * 2, rect.y + this.borderSize * 2);
     }
   }
 
@@ -132,15 +145,54 @@ class WindowMapInventory extends Window_Base {
     return rectangle;
   }
 
-  public function getHoveredItem(x: Int, y: Int): Null<BaseItem> {
+  public function getCurrentItem(index) {
     var item = null;
-    var pos = this.canvasToLocal();
+    item = this._items[(this.page * this._maxPageItems) + this._selectionIndex];
+    return item;
+  }
+
+  // Update Functionality
+  public override function update() {
+    super.update();
+    this.processOkAndCancel();
+    this.processSelectionOfItemsKeyboard();
+    this.processSelectionOfItemMouse();
+  }
+
+  public function processOkAndCancel() {
+    switch (Input) {
+      case _.isTriggered('ok') => true:
+        this.emit(InvEvents.CONFIRMITEM, this.currentItem());
+      case _.isTriggered('cancel') => true:
+        this.emit(InvEvents.CANCELITEM);
+      case _:
+        // Do nothing
+    }
+  }
+
+  public function processSelectionOfItemsKeyboard() {
+    // Handle moving with arrow keys
+    switch (Input) {
+      case _.isTriggered('right') => true:
+        this.emit(InvEvents.SELECTITEM, this._selectionIndex + 1);
+      case _.isTriggered('left') && this._selectionIndex > 0 => true:
+        this.emit(InvEvents.SELECTITEM, this._selectionIndex - 1);
+      case _:
+        // Do nothing
+    }
+  }
+
+  public function processSelectionOfItemMouse() {
+    var item = null;
+    var pos = this.canvasToLocal(TouchInput.x, TouchInput.y);
     for (index in 0...this._maxPageItems) {
       var internalIndex = index % this._maxPageItems;
       var rect = this.itemRectForCell(index);
 
       if (pos.x.withinRangef(rect.x, rect.width + rect.x) && pos.y.withinRangef(rect.y, rect.height)) {
         item = this._items[(this.page * this._maxPageItems) + index];
+        // Since we found an item for the hovered item, setCursorRect
+        this.emit(InvEvents.SELECTITEM, index);
       }
     }
     return item;

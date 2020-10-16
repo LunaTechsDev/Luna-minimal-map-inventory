@@ -15,14 +15,14 @@ class WindowExtensions {
     #end
   }
 
-  public static function canvasToLocal(win: Window_Base): Point {
+  public static function canvasToLocal(win: Window_Base, x: Float, y: Float): Point {
     #if compileMV
-    var x = win.canvasToLocalX(TouchInput.x);
-    var y = win.canvasToLocalY(TouchInput.y);
+    var x = win.canvasToLocalX(x);
+    var y = win.canvasToLocalY(y);
 
     return new rm.core.Point(x, y);
     #else
-    var touchPos = new Point(TouchInput.x, TouchInput.y);
+    var touchPos = new Point(x, y);
     var localPos = win.worldTransform.applyInverse(touchPos);
     return localPos;
     #end
