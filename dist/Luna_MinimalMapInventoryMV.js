@@ -2,7 +2,7 @@
 // Luna_MinimalMapInventoryMV.js
 //=============================================================================
 //=============================================================================
-// Build Date: 2020-10-15 20:46:24
+// Build Date: 2020-10-15 21:01:19
 //=============================================================================
 //=============================================================================
 // Made with LunaTea -- Haxe
@@ -156,10 +156,6 @@ class LunaMMInventory {
 			this.createMapInvWindow()
 			this.createMapInvHelpWindow()
 			this.createMapInvConfirmWindow()
-		}
-		let _Scene_Map_create = Scene_Map.prototype.create
-		Scene_Map.prototype.create = function() {
-			_Scene_Map_create.call(this)
 			this.setupMMInventoryEvents()
 		}
 		let _Scene_Map_createMapInvWindow = Scene_Map.prototype.createMapInvWindow
@@ -307,6 +303,7 @@ class Scene_$Map extends Scene_Map {
 		this.createMapInvWindow()
 		this.createMapInvHelpWindow()
 		this.createMapInvConfirmWindow()
+		this.setupMMInventoryEvents()
 	}
 	createMapInvWindow() {
 		let centerX = Graphics.width / 2

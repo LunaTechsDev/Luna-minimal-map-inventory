@@ -163,6 +163,7 @@ class WindowMapInventory extends Window_Base {
     switch (Input) {
       case _.isTriggered('ok') => true:
         this.emit(InvEvents.CONFIRMITEM, this.currentItem());
+      // TODO: Suppress Menu when  on screen
       case _.isTriggered('cancel') => true:
         this.emit(InvEvents.CANCELITEM);
       case _:

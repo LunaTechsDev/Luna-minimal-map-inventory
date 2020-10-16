@@ -19,13 +19,13 @@ class Scene_Map extends RmScene_Map {
     this.createMapInvWindow();
     this.createMapInvHelpWindow();
     this.createMapInvConfirmWindow();
-  }
-
-  public override function create() {
-    // super.create();
-    untyped _Scene_Map_create.call(this);
     this.setupMMInventoryEvents();
   }
+
+  // public override function create() {
+  //   // super.create();
+  //   untyped _Scene_Map_create.call(this);
+  // }
 
   public function createMapInvWindow() {
     var centerX = Graphics.width / 2;
