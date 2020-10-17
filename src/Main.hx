@@ -18,6 +18,7 @@ using utils.Fn;
 
 typedef LParams = {
   var maxPageItems: Int;
+  var helpFontSize: Int;
 }
 
 @:native('LunaMMInventory')
@@ -30,7 +31,8 @@ class Main {
     var plugin = Globals.Plugins.filter((plugin) -> ~/<LunaMMI>/ig.match(plugin.description))[0];
     var params = plugin.parameters;
     untyped Params = {
-      maxPageItems: Fn.parseIntJs(params['maxPageItems'])
+      maxPageItems: Fn.parseIntJs(params['maxPageItems']),
+      helpFontSize: Fn.parseIntJs(params['helpFontSize'])
     }
     trace(Params);
 
@@ -62,6 +64,13 @@ class Main {
     // Get Name From Class Patched
     if (Fn.hasProperty(scene, '_lmmInventoryWindow')) {
       scene._lmmInventoryWindow.setItems(Globals.GameParty.items());
+      var len = scene.__spriteset.__characterSprites.length;
+      var player = scene.__spriteset.__characterSprites[len - 1];
+      var lmmInvWindow = scene._lmmInventoryWindow;
+      lmmInvWindow.move(player.x
+        + player.width
+        - (lmmInvWindow.width / 2), player.y
+        - (lmmInvWindow.height * 2), lmmInvWindow.width, lmmInvWindow.height);
       scene._lmmInventoryWindow.show();
       scene._lmmInventoryWindow.open();
     }

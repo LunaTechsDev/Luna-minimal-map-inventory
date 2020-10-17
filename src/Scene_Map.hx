@@ -7,6 +7,8 @@ import rm.types.RPG.EquipItem;
 import rm.Globals;
 import rm.scenes.Scene_Map as RmScene_Map;
 
+using Lambda;
+
 // TODO: Update Game_Player to not move when inv open
 class Scene_Map extends RmScene_Map {
   public var _lmmInventoryWindow: WindowMapInventory;
@@ -28,16 +30,23 @@ class Scene_Map extends RmScene_Map {
   // }
 
   public function createMapInvWindow() {
+    // Last Character in the character spritesets is the
+    // player party leader
     var centerX = Graphics.width / 2;
     trace(centerX);
     var width = 400;
-    this._lmmInventoryWindow = new WindowMapInventory(cast centerX - width / 2, 300, width, 75);
+    var height = 75;
+    this._lmmInventoryWindow = new WindowMapInventory(cast centerX, 300, width, height);
+
+    // player.addChild(this._lmmInventoryWindow);
     this.addWindow(this._lmmInventoryWindow);
     this._lmmInventoryWindow.hide();
   }
 
   public function createMapInvHelpWindow() {
-    this._lmmInventoryHelpWindow = new WindowMapInvHelp(0, 0, 200, 200);
+    var invWindow = this._lmmInventoryWindow;
+    var width = 200;
+    this._lmmInventoryHelpWindow = new WindowMapInvHelp(cast invWindow.x - width, cast invWindow.y, width, 200);
     this.addWindow(this._lmmInventoryHelpWindow);
     this._lmmInventoryHelpWindow.hide();
   }
@@ -95,12 +104,19 @@ class Scene_Map extends RmScene_Map {
     var item = this._lmmInventoryWindow.currentItem();
     if (item != null) {
       trace('Found Item', item.description);
-      this._lmmInventoryHelpWindow.setHelpText(item.description);
-      this._lmmInventoryHelpWindow.show();
-      this._lmmInventoryHelpWindow.open();
+      this.processMMHelpWindow(item);
     } else {
       this._lmmInventoryHelpWindow.close();
     }
+  }
+
+  public function processMMHelpWindow(item: BaseItem) {
+    var width = this._lmmInventoryHelpWindow.width;
+    var invWindow = this._lmmInventoryWindow;
+    this._lmmInventoryHelpWindow.setHelpText(item.description);
+    this._lmmInventoryHelpWindow.move(cast invWindow.x - width, cast invWindow.y, width, 200);
+    this._lmmInventoryHelpWindow.show();
+    this._lmmInventoryHelpWindow.open();
   }
 
   public function setupMMInventoryEvents() {

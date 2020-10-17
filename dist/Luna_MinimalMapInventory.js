@@ -2,7 +2,7 @@
 // Luna_MinimalMapInventory.js
 //=============================================================================
 //=============================================================================
-// Build Date: 2020-10-15 21:01:19
+// Build Date: 2020-10-16 20:57:51
 //=============================================================================
 //=============================================================================
 // Made with LunaTea -- Haxe
@@ -24,6 +24,11 @@
 @text Max Page Items
 @desc The maximum numer of page items
 @default 8
+
+@param helpFontSize
+@text Help Font Size
+@desc The help window font size
+@default 12
 
 @help
 
@@ -137,8 +142,8 @@ class LunaMMInventory {
 		}
 		let plugin = _g[0]
 		let params = plugin.parameters
-		LunaMMInventory.Params = { maxPageItems : parseInt(params["maxPageItems"],10)}
-		haxe_Log.trace(LunaMMInventory.Params,{ fileName : "src/Main.hx", lineNumber : 35, className : "Main", methodName : "main"})
+		LunaMMInventory.Params = { maxPageItems : parseInt(params["maxPageItems"],10), helpFontSize : parseInt(params["helpFontSize"],10)}
+		haxe_Log.trace(LunaMMInventory.Params,{ fileName : "src/Main.hx", lineNumber : 37, className : "Main", methodName : "main"})
 		
 //=============================================================================
 // Scene_Map
@@ -161,15 +166,18 @@ class LunaMMInventory {
 		let _Scene_Map_createMapInvWindow = Scene_Map.prototype.createMapInvWindow
 		Scene_Map.prototype.createMapInvWindow = function() {
 			let centerX = Graphics.width / 2
-			haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 32, className : "Scene_Map", methodName : "createMapInvWindow"})
+			haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 36, className : "Scene_Map", methodName : "createMapInvWindow"})
 			let width = 400
-			this._lmmInventoryWindow = new WindowMapInventory(centerX - width / 2,300,width,75)
+			let height = 75
+			this._lmmInventoryWindow = new WindowMapInventory(centerX,300,width,height)
 			this.addWindow(this._lmmInventoryWindow)
 			this._lmmInventoryWindow.hide()
 		}
 		let _Scene_Map_createMapInvHelpWindow = Scene_Map.prototype.createMapInvHelpWindow
 		Scene_Map.prototype.createMapInvHelpWindow = function() {
-			this._lmmInventoryHelpWindow = new WindowMapInvHelp(0,0,200,200)
+			let invWindow = this._lmmInventoryWindow
+			let width = 200
+			this._lmmInventoryHelpWindow = new WindowMapInvHelp(invWindow.x - width,invWindow.y,width,200)
 			this.addWindow(this._lmmInventoryHelpWindow)
 			this._lmmInventoryHelpWindow.hide()
 		}
@@ -221,13 +229,20 @@ class LunaMMInventory {
 		Scene_Map.prototype.processMMInventory = function() {
 			let item = this._lmmInventoryWindow.currentItem()
 			if(item != null) {
-				haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 97, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
-				this._lmmInventoryHelpWindow.setHelpText(item.description)
-				this._lmmInventoryHelpWindow.show()
-				this._lmmInventoryHelpWindow.open()
+				haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 106, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
+				this.processMMHelpWindow(item)
 			} else {
 				this._lmmInventoryHelpWindow.close()
 			}
+		}
+		let _Scene_Map_processMMHelpWindow = Scene_Map.prototype.processMMHelpWindow
+		Scene_Map.prototype.processMMHelpWindow = function(item) {
+			let width = this._lmmInventoryHelpWindow.width
+			let invWindow = this._lmmInventoryWindow
+			this._lmmInventoryHelpWindow.setHelpText(item.description)
+			this._lmmInventoryHelpWindow.move(invWindow.x - width,invWindow.y,width,200)
+			this._lmmInventoryHelpWindow.show()
+			this._lmmInventoryHelpWindow.open()
 		}
 		let _Scene_Map_setupMMInventoryEvents = Scene_Map.prototype.setupMMInventoryEvents
 		Scene_Map.prototype.setupMMInventoryEvents = function() {
@@ -274,16 +289,20 @@ class LunaMMInventory {
 		}
 	}
 	static openInventory() {
-		haxe_Log.trace("Open minimal inventory",{ fileName : "src/Main.hx", lineNumber : 60, className : "Main", methodName : "openInventory"})
+		haxe_Log.trace("Open minimal inventory",{ fileName : "src/Main.hx", lineNumber : 62, className : "Main", methodName : "openInventory"})
 		let scene = SceneManager._scene
 		if(scene.hasOwnProperty("_lmmInventoryWindow")) {
 			scene._lmmInventoryWindow.setItems($gameParty.items())
+			let len = scene._spriteset._characterSprites.length
+			let player = scene._spriteset._characterSprites[len - 1]
+			let lmmInvWindow = scene._lmmInventoryWindow
+			lmmInvWindow.move(player.x + player.width - lmmInvWindow.width / 2,player.y - lmmInvWindow.height * 2,lmmInvWindow.width,lmmInvWindow.height)
 			scene._lmmInventoryWindow.show()
 			scene._lmmInventoryWindow.open()
 		}
 	}
 	static closeInventory() {
-		haxe_Log.trace("Close minimal inventory",{ fileName : "src/Main.hx", lineNumber : 71, className : "Main", methodName : "closeInventory"})
+		haxe_Log.trace("Close minimal inventory",{ fileName : "src/Main.hx", lineNumber : 80, className : "Main", methodName : "closeInventory"})
 		let scene = SceneManager._scene
 		if(scene.hasOwnProperty("_lmmInventoryWindow")) {
 			scene._lmmInventoryWindow.close()
@@ -307,13 +326,14 @@ class Scene_$Map extends Scene_Map {
 	}
 	createMapInvWindow() {
 		let centerX = Graphics.width / 2
-		haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 32, className : "Scene_Map", methodName : "createMapInvWindow"})
-		this._lmmInventoryWindow = new WindowMapInventory(centerX - 200.,300,400,75)
+		haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 36, className : "Scene_Map", methodName : "createMapInvWindow"})
+		this._lmmInventoryWindow = new WindowMapInventory(centerX,300,400,75)
 		this.addWindow(this._lmmInventoryWindow)
 		this._lmmInventoryWindow.hide()
 	}
 	createMapInvHelpWindow() {
-		this._lmmInventoryHelpWindow = new WindowMapInvHelp(0,0,200,200)
+		let invWindow = this._lmmInventoryWindow
+		this._lmmInventoryHelpWindow = new WindowMapInvHelp(invWindow.x - 200,invWindow.y,200,200)
 		this.addWindow(this._lmmInventoryHelpWindow)
 		this._lmmInventoryHelpWindow.hide()
 	}
@@ -354,13 +374,19 @@ class Scene_$Map extends Scene_Map {
 	processMMInventory() {
 		let item = this._lmmInventoryWindow.currentItem()
 		if(item != null) {
-			haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 97, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
-			this._lmmInventoryHelpWindow.setHelpText(item.description)
-			this._lmmInventoryHelpWindow.show()
-			this._lmmInventoryHelpWindow.open()
+			haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 106, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
+			this.processMMHelpWindow(item)
 		} else {
 			this._lmmInventoryHelpWindow.close()
 		}
+	}
+	processMMHelpWindow(item) {
+		let width = this._lmmInventoryHelpWindow.width
+		let invWindow = this._lmmInventoryWindow
+		this._lmmInventoryHelpWindow.setHelpText(item.description)
+		this._lmmInventoryHelpWindow.move(invWindow.x - width,invWindow.y,width,200)
+		this._lmmInventoryHelpWindow.show()
+		this._lmmInventoryHelpWindow.open()
 	}
 	setupMMInventoryEvents() {
 		let _gthis = this
@@ -408,6 +434,20 @@ class WindowMapInvHelp extends Window_Base {
 		super(rect);
 		this._helpText = ""
 	}
+	processAllText(textState) {
+		while(textState.index < textState.text.length) {
+			let currentLines = textState.text.substring(0,textState.index + 1).split("\n")
+			let latestLine = currentLines[currentLines.length - 1]
+			let textUpToIndex = latestLine.substring(0,latestLine.length)
+			if(this.textWidth(textUpToIndex) > this.contentsWidth()) {
+				let textWithBreak = textState.text.substring(0,textState.index)
+				textState.text = textWithBreak + "\n" + textState.text.substring(textState.index,textState.text.length - 1)
+				haxe_Log.trace(textState.text,{ fileName : "src/WindowMapInvHelp.hx", lineNumber : 72, className : "WindowMapInvHelp", methodName : "processAllText"})
+			}
+			this.processCharacter(textState)
+		}
+		this.flushTextState(textState)
+	}
 	setHelpText(text) {
 		this._helpText = text
 		this.refresh()
@@ -419,6 +459,7 @@ class WindowMapInvHelp extends Window_Base {
 		}
 	}
 	paintHelpText() {
+		this.contents.fontSize = LunaMMInventory.Params.helpFontSize
 		this.drawTextEx(this._helpText,0,0,this.contentsWidth())
 	}
 	update() {
@@ -484,8 +525,7 @@ class WindowMapInventory extends Window_Base {
 		let startIndex = this.page * this._maxPageItems
 		let endIndex = this.page * this._maxPageItems + this._maxPageItems
 		let _g = startIndex
-		let _g1 = endIndex - 1
-		while(_g < _g1) {
+		while(_g < endIndex) {
 			let index = _g++
 			this.paintItem(index)
 		}

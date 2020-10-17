@@ -14,6 +14,11 @@
 @desc The maximum numer of page items
 @default 8
 
+@param helpFontSize
+@text Help Font Size
+@desc The help window font size
+@default 12
+
 @help
 
 A plugin that creates a inventory menu on the map scene<LunaMMI>.

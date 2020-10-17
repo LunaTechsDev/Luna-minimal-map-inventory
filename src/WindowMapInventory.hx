@@ -99,7 +99,7 @@ class WindowMapInventory extends Window_Base {
     var startIndex = this.page * this._maxPageItems;
     var endIndex = (this.page * this._maxPageItems) + this._maxPageItems;
 
-    for (index in startIndex...(endIndex - 1)) {
+    for (index in startIndex...endIndex) {
       this.paintItem(index);
     }
   }
