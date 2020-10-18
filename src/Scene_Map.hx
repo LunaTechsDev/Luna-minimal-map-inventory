@@ -48,7 +48,7 @@ class Scene_Map extends RmScene_Map {
   }
 
   public function createMapInvConfirmWindow() {
-    this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0, 0, 200, 200);
+    this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0, 0, 200, 75);
     this.setConfirmWindowHandlers();
     this.addWindow(this._lmmInventoryConfirmWindow);
     this._lmmInventoryConfirmWindow.hide();
@@ -62,7 +62,7 @@ class Scene_Map extends RmScene_Map {
   public function confirmItemUse() {
     // Use current item
     var currentItem = this._lmmInventoryWindow.currentItem();
-    // Shouldn't happen
+
     if (currentItem != null) {
       switch (currentItem) {
         case DataManager.isItem(_) => true:
@@ -75,28 +75,34 @@ class Scene_Map extends RmScene_Map {
       }
     }
 
-    this.closeConfirmWindow();
+    this.closeMMInvWindow();
+    this.closeMMConfirmWindow();
   }
 
   public function cancelItemUse() {
-    this.closeConfirmWindow();
+    this.closeMMConfirmWindow();
   }
 
-  public function closeConfirmWindow() {
+  public function closeMMInvWindow() {
+    this._lmmInventoryWindow.close();
+    this._lmmInventoryWindow.deactivate();
+    this._lmmInventoryWindow.hide();
+  }
+
+  public function closeMMConfirmWindow() {
     this._lmmInventoryConfirmWindow.deactivate();
     this._lmmInventoryConfirmWindow.close();
     this._lmmInventoryConfirmWindow.hide();
   }
 
   public override function update() {
-    // super.update();
     untyped _Scene_Map_update.call(this);
     this.processMMInventory();
   }
 
   public function processMMInventory() {
     // Inventory Window Hovered Over Item
-    // var item = this._lmmInventoryWindow.getHoveredItem();
+
     var item = this._lmmInventoryWindow.currentItem();
     if (item != null && this._lmmInventoryWindow.isOpen()) {
       // trace('Found Item', item.description);
@@ -126,6 +132,11 @@ class Scene_Map extends RmScene_Map {
 
     this._lmmInventoryWindow.on(InvEvents.CONFIRMITEM, (item: BaseItem) -> {
       // Move Window to the proper position
+      var invWindow = this._lmmInventoryWindow;
+
+      this._lmmInventoryConfirmWindow.move(invWindow.x, invWindow.y + invWindow.height, this._lmmInventoryConfirmWindow.width, this._lmmInventoryConfirmWindow.height);
+      this._lmmInventoryConfirmWindow.activate();
+      this._lmmInventoryConfirmWindow.show();
       this._lmmInventoryConfirmWindow.open();
     });
   }

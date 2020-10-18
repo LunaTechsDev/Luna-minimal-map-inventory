@@ -2,7 +2,7 @@
 // Luna_MinimalMapInventory.js
 //=============================================================================
 //=============================================================================
-// Build Date: 2020-10-18 15:03:42
+// Build Date: 2020-10-18 15:21:45
 //=============================================================================
 //=============================================================================
 // Made with LunaTea -- Haxe
@@ -183,7 +183,7 @@ class LunaMMInventory {
 		}
 		let _Scene_Map_createMapInvConfirmWindow = Scene_Map.prototype.createMapInvConfirmWindow
 		Scene_Map.prototype.createMapInvConfirmWindow = function() {
-			this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0,0,200,200)
+			this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0,0,200,75)
 			this.setConfirmWindowHandlers()
 			this.addWindow(this._lmmInventoryConfirmWindow)
 			this._lmmInventoryConfirmWindow.hide()
@@ -208,14 +208,21 @@ class LunaMMInventory {
 					}
 				}
 			}
-			this.closeConfirmWindow()
+			this.closeMMInvWindow()
+			this.closeMMConfirmWindow()
 		}
 		let _Scene_Map_cancelItemUse = Scene_Map.prototype.cancelItemUse
 		Scene_Map.prototype.cancelItemUse = function() {
-			this.closeConfirmWindow()
+			this.closeMMConfirmWindow()
 		}
-		let _Scene_Map_closeConfirmWindow = Scene_Map.prototype.closeConfirmWindow
-		Scene_Map.prototype.closeConfirmWindow = function() {
+		let _Scene_Map_closeMMInvWindow = Scene_Map.prototype.closeMMInvWindow
+		Scene_Map.prototype.closeMMInvWindow = function() {
+			this._lmmInventoryWindow.close()
+			this._lmmInventoryWindow.deactivate()
+			this._lmmInventoryWindow.hide()
+		}
+		let _Scene_Map_closeMMConfirmWindow = Scene_Map.prototype.closeMMConfirmWindow
+		Scene_Map.prototype.closeMMConfirmWindow = function() {
 			this._lmmInventoryConfirmWindow.deactivate()
 			this._lmmInventoryConfirmWindow.close()
 			this._lmmInventoryConfirmWindow.hide()
@@ -254,6 +261,10 @@ class LunaMMInventory {
 				_gthis._lmmInventoryWindow.close()
 			})
 			this._lmmInventoryWindow.on("confirmItem",function(item) {
+				let invWindow = _gthis._lmmInventoryWindow
+				_gthis._lmmInventoryConfirmWindow.move(invWindow.x,invWindow.y + invWindow.height,_gthis._lmmInventoryConfirmWindow.width,_gthis._lmmInventoryConfirmWindow.height)
+				_gthis._lmmInventoryConfirmWindow.activate()
+				_gthis._lmmInventoryConfirmWindow.show()
 				_gthis._lmmInventoryConfirmWindow.open()
 			})
 		}
@@ -349,7 +360,7 @@ class Scene_$Map extends Scene_Map {
 		this._lmmInventoryHelpWindow.hide()
 	}
 	createMapInvConfirmWindow() {
-		this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0,0,200,200)
+		this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0,0,200,75)
 		this.setConfirmWindowHandlers()
 		this.addWindow(this._lmmInventoryConfirmWindow)
 		this._lmmInventoryConfirmWindow.hide()
@@ -372,12 +383,18 @@ class Scene_$Map extends Scene_Map {
 				}
 			}
 		}
-		this.closeConfirmWindow()
+		this.closeMMInvWindow()
+		this.closeMMConfirmWindow()
 	}
 	cancelItemUse() {
-		this.closeConfirmWindow()
+		this.closeMMConfirmWindow()
 	}
-	closeConfirmWindow() {
+	closeMMInvWindow() {
+		this._lmmInventoryWindow.close()
+		this._lmmInventoryWindow.deactivate()
+		this._lmmInventoryWindow.hide()
+	}
+	closeMMConfirmWindow() {
 		this._lmmInventoryConfirmWindow.deactivate()
 		this._lmmInventoryConfirmWindow.close()
 		this._lmmInventoryConfirmWindow.hide()
@@ -408,6 +425,10 @@ class Scene_$Map extends Scene_Map {
 			_gthis._lmmInventoryWindow.close()
 		})
 		this._lmmInventoryWindow.on("confirmItem",function(item) {
+			let invWindow = _gthis._lmmInventoryWindow
+			_gthis._lmmInventoryConfirmWindow.move(invWindow.x,invWindow.y + invWindow.height,_gthis._lmmInventoryConfirmWindow.width,_gthis._lmmInventoryConfirmWindow.height)
+			_gthis._lmmInventoryConfirmWindow.activate()
+			_gthis._lmmInventoryConfirmWindow.show()
 			_gthis._lmmInventoryConfirmWindow.open()
 		})
 	}
@@ -428,10 +449,13 @@ class WindowExtensions {
 	}
 }
 WindowExtensions.__name__ = true
-class WindowMapInvConfirm extends Window_Command {
+class WindowMapInvConfirm extends Window_HorzCommand {
 	constructor(x,y,width,height) {
 		let rect = new Rectangle(x,y,width,height)
 		super(rect);
+	}
+	maxCols() {
+		return 2;
 	}
 	makeCommandList() {
 		super.makeCommandList()
@@ -594,7 +618,7 @@ class WindowMapInventory extends Window_Base {
 		this.processSelectionOfItemMouse()
 	}
 	processOkAndCancel() {
-		if(Input.isTriggered("ok") || TouchInput.isPressed() && this.active) {
+		if(Input.isTriggered("ok") || TouchInput.isPressed() && this.active && this.currentItem() != null) {
 			this.emit("confirmItem",this.currentItem())
 		}
 		if(Input.isTriggered("cancel") || TouchInput.isCancelled() && this.active) {

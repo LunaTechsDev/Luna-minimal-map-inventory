@@ -160,7 +160,7 @@ class WindowMapInventory extends Window_Base {
   }
 
   public function processOkAndCancel() {
-    if (Input.isTriggered('ok') || TouchInput.isPressed() && this.active) {
+    if (Input.isTriggered('ok') || TouchInput.isPressed() && this.active && this.currentItem() != null) {
       this.emit(InvEvents.CONFIRMITEM, this.currentItem());
     }
 
