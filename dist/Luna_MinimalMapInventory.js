@@ -2,7 +2,7 @@
 // Luna_MinimalMapInventory.js
 //=============================================================================
 //=============================================================================
-// Build Date: 2020-10-16 20:57:51
+// Build Date: 2020-10-18 14:54:17
 //=============================================================================
 //=============================================================================
 // Made with LunaTea -- Haxe
@@ -143,7 +143,7 @@ class LunaMMInventory {
 		let plugin = _g[0]
 		let params = plugin.parameters
 		LunaMMInventory.Params = { maxPageItems : parseInt(params["maxPageItems"],10), helpFontSize : parseInt(params["helpFontSize"],10)}
-		haxe_Log.trace(LunaMMInventory.Params,{ fileName : "src/Main.hx", lineNumber : 37, className : "Main", methodName : "main"})
+		console.log("src/Main.hx:37:",LunaMMInventory.Params)
 		
 //=============================================================================
 // Scene_Map
@@ -166,7 +166,7 @@ class LunaMMInventory {
 		let _Scene_Map_createMapInvWindow = Scene_Map.prototype.createMapInvWindow
 		Scene_Map.prototype.createMapInvWindow = function() {
 			let centerX = Graphics.width / 2
-			haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 36, className : "Scene_Map", methodName : "createMapInvWindow"})
+			console.log("src/Scene_Map.hx:32:",centerX)
 			let width = 400
 			let height = 75
 			this._lmmInventoryWindow = new WindowMapInventory(centerX,300,width,height)
@@ -229,7 +229,6 @@ class LunaMMInventory {
 		Scene_Map.prototype.processMMInventory = function() {
 			let item = this._lmmInventoryWindow.currentItem()
 			if(item != null) {
-				haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 106, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
 				this.processMMHelpWindow(item)
 			} else {
 				this._lmmInventoryHelpWindow.close()
@@ -239,6 +238,7 @@ class LunaMMInventory {
 		Scene_Map.prototype.processMMHelpWindow = function(item) {
 			let width = this._lmmInventoryHelpWindow.width
 			let invWindow = this._lmmInventoryWindow
+			this._lmmInventoryHelpWindow.setNameText(item.name)
 			this._lmmInventoryHelpWindow.setHelpText(item.description)
 			this._lmmInventoryHelpWindow.move(invWindow.x - width,invWindow.y,width,200)
 			this._lmmInventoryHelpWindow.show()
@@ -255,6 +255,14 @@ class LunaMMInventory {
 			this._lmmInventoryWindow.on("confirmItem",function(item) {
 				_gthis._lmmInventoryConfirmWindow.open()
 			})
+		}
+		let _Scene_Map_isMenuEnabled = Scene_Map.prototype.isMenuEnabled
+		Scene_Map.prototype.isMenuEnabled = function() {
+			if(this._lmmInventoryWindow.isOpen()) {
+				return false;
+			} else {
+				return _Scene_Map_isMenuEnabled.call(this);
+			}
 		}
 		
 //=============================================================================
@@ -289,7 +297,7 @@ class LunaMMInventory {
 		}
 	}
 	static openInventory() {
-		haxe_Log.trace("Open minimal inventory",{ fileName : "src/Main.hx", lineNumber : 62, className : "Main", methodName : "openInventory"})
+		console.log("src/Main.hx:62:","Open minimal inventory")
 		let scene = SceneManager._scene
 		if(scene.hasOwnProperty("_lmmInventoryWindow")) {
 			scene._lmmInventoryWindow.setItems($gameParty.items())
@@ -302,7 +310,7 @@ class LunaMMInventory {
 		}
 	}
 	static closeInventory() {
-		haxe_Log.trace("Close minimal inventory",{ fileName : "src/Main.hx", lineNumber : 80, className : "Main", methodName : "closeInventory"})
+		console.log("src/Main.hx:80:","Close minimal inventory")
 		let scene = SceneManager._scene
 		if(scene.hasOwnProperty("_lmmInventoryWindow")) {
 			scene._lmmInventoryWindow.close()
@@ -326,7 +334,7 @@ class Scene_$Map extends Scene_Map {
 	}
 	createMapInvWindow() {
 		let centerX = Graphics.width / 2
-		haxe_Log.trace(centerX,{ fileName : "src/Scene_Map.hx", lineNumber : 36, className : "Scene_Map", methodName : "createMapInvWindow"})
+		console.log("src/Scene_Map.hx:32:",centerX)
 		this._lmmInventoryWindow = new WindowMapInventory(centerX,300,400,75)
 		this.addWindow(this._lmmInventoryWindow)
 		this._lmmInventoryWindow.hide()
@@ -374,7 +382,6 @@ class Scene_$Map extends Scene_Map {
 	processMMInventory() {
 		let item = this._lmmInventoryWindow.currentItem()
 		if(item != null) {
-			haxe_Log.trace("Found Item",{ fileName : "src/Scene_Map.hx", lineNumber : 106, className : "Scene_Map", methodName : "processMMInventory", customParams : [item.description]})
 			this.processMMHelpWindow(item)
 		} else {
 			this._lmmInventoryHelpWindow.close()
@@ -383,6 +390,7 @@ class Scene_$Map extends Scene_Map {
 	processMMHelpWindow(item) {
 		let width = this._lmmInventoryHelpWindow.width
 		let invWindow = this._lmmInventoryWindow
+		this._lmmInventoryHelpWindow.setNameText(item.name)
 		this._lmmInventoryHelpWindow.setHelpText(item.description)
 		this._lmmInventoryHelpWindow.move(invWindow.x - width,invWindow.y,width,200)
 		this._lmmInventoryHelpWindow.show()
@@ -399,14 +407,15 @@ class Scene_$Map extends Scene_Map {
 			_gthis._lmmInventoryConfirmWindow.open()
 		})
 	}
-}
-Scene_$Map.__name__ = true
-class Std {
-	static string(s) {
-		return js_Boot.__string_rec(s,"");
+	isMenuEnabled() {
+		if(this._lmmInventoryWindow.isOpen()) {
+			return false;
+		} else {
+			return _Scene_Map_isMenuEnabled.call(this);
+		}
 	}
 }
-Std.__name__ = true
+Scene_$Map.__name__ = true
 class WindowExtensions {
 	static canvasToLocal(win,x,y) {
 		let touchPos = new PIXI.Point(x,y)
@@ -432,7 +441,15 @@ class WindowMapInvHelp extends Window_Base {
 	constructor(x,y,width,height) {
 		let rect = new Rectangle(x,y,width,height)
 		super(rect);
+		this._nameText = ""
 		this._helpText = ""
+	}
+	drawTextEx(text,x,y,width) {
+		this.resetFontSettings()
+		this.contents.fontSize = LunaMMInventory.Params.helpFontSize
+		let textState = this.createTextState(text,x,y,width)
+		this.processAllText(textState)
+		return textState.outputWidth;
 	}
 	processAllText(textState) {
 		while(textState.index < textState.text.length) {
@@ -441,12 +458,15 @@ class WindowMapInvHelp extends Window_Base {
 			let textUpToIndex = latestLine.substring(0,latestLine.length)
 			if(this.textWidth(textUpToIndex) > this.contentsWidth()) {
 				let textWithBreak = textState.text.substring(0,textState.index)
-				textState.text = textWithBreak + "\n" + textState.text.substring(textState.index,textState.text.length - 1)
-				haxe_Log.trace(textState.text,{ fileName : "src/WindowMapInvHelp.hx", lineNumber : 72, className : "WindowMapInvHelp", methodName : "processAllText"})
+				textState.text = textWithBreak + "\n" + textState.text.substring(textState.index,textState.text.length)
 			}
 			this.processCharacter(textState)
 		}
 		this.flushTextState(textState)
+	}
+	setNameText(text) {
+		this._nameText = text
+		this.refresh()
 	}
 	setHelpText(text) {
 		this._helpText = text
@@ -455,12 +475,18 @@ class WindowMapInvHelp extends Window_Base {
 	refresh() {
 		if(this.contents != null) {
 			this.contents.clear()
-			this.paintHelpText()
+			this.paintItemName(0,0)
+			this.paintHelpText(0,40)
 		}
 	}
-	paintHelpText() {
+	paintItemName(x,y) {
+		this.contents.fontSize = 18
+		this.contents.fillRect(x,y,this.contentsWidth(),40,"rgba(0, 0, 0, 0.5)")
+		this.drawText(this._nameText,x,y,this.contentsWidth(),"center")
+	}
+	paintHelpText(x,y) {
 		this.contents.fontSize = LunaMMInventory.Params.helpFontSize
-		this.drawTextEx(this._helpText,0,0,this.contentsWidth())
+		this.drawTextEx(this._helpText,x,y,this.contentsWidth())
 	}
 	update() {
 		super.update()
@@ -516,7 +542,7 @@ class WindowMapInventory extends Window_Base {
 	}
 	refresh() {
 		if(this.contents != null) {
-			haxe_Log.trace("Paint All Items",{ fileName : "src/WindowMapInventory.hx", lineNumber : 92, className : "WindowMapInventory", methodName : "refresh"})
+			console.log("src/WindowMapInventory.hx:92:","Paint All Items")
 			this.contents.clear()
 			this.paintAllItems()
 		}
@@ -611,32 +637,6 @@ class WindowMapInventory extends Window_Base {
 }
 $hx_exports["WindowMapInventory"] = WindowMapInventory
 WindowMapInventory.__name__ = true
-class haxe_Log {
-	static formatOutput(v,infos) {
-		let str = Std.string(v)
-		if(infos == null) {
-			return str;
-		}
-		let pstr = infos.fileName + ":" + infos.lineNumber
-		if(infos.customParams != null) {
-			let _g = 0
-			let _g1 = infos.customParams
-			while(_g < _g1.length) {
-				let v = _g1[_g]
-				++_g
-				str += ", " + Std.string(v);
-			}
-		}
-		return pstr + ": " + str;
-	}
-	static trace(v,infos) {
-		let str = haxe_Log.formatOutput(v,infos)
-		if(typeof(console) != "undefined" && console.log != null) {
-			console.log(str)
-		}
-	}
-}
-haxe_Log.__name__ = true
 class haxe_iterators_ArrayIterator {
 	constructor(array) {
 		this.current = 0

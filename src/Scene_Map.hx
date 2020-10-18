@@ -8,6 +8,7 @@ import rm.Globals;
 import rm.scenes.Scene_Map as RmScene_Map;
 
 using Lambda;
+using WindowExtensions;
 
 // TODO: Update Game_Player to not move when inv open
 class Scene_Map extends RmScene_Map {
@@ -23,11 +24,6 @@ class Scene_Map extends RmScene_Map {
     this.createMapInvConfirmWindow();
     this.setupMMInventoryEvents();
   }
-
-  // public override function create() {
-  //   // super.create();
-  //   untyped _Scene_Map_create.call(this);
-  // }
 
   public function createMapInvWindow() {
     // Last Character in the character spritesets is the
@@ -103,7 +99,7 @@ class Scene_Map extends RmScene_Map {
     // var item = this._lmmInventoryWindow.getHoveredItem();
     var item = this._lmmInventoryWindow.currentItem();
     if (item != null) {
-      trace('Found Item', item.description);
+      // trace('Found Item', item.description);
       this.processMMHelpWindow(item);
     } else {
       this._lmmInventoryHelpWindow.close();
@@ -113,6 +109,7 @@ class Scene_Map extends RmScene_Map {
   public function processMMHelpWindow(item: BaseItem) {
     var width = this._lmmInventoryHelpWindow.width;
     var invWindow = this._lmmInventoryWindow;
+    this._lmmInventoryHelpWindow.setNameText(item.name);
     this._lmmInventoryHelpWindow.setHelpText(item.description);
     this._lmmInventoryHelpWindow.move(cast invWindow.x - width, cast invWindow.y, width, 200);
     this._lmmInventoryHelpWindow.show();
@@ -130,5 +127,16 @@ class Scene_Map extends RmScene_Map {
       // Move Window to the proper position
       this._lmmInventoryConfirmWindow.open();
     });
+  }
+
+  /**
+   * ==== SceneMap Updates ====
+   */
+  public override function isMenuEnabled(): Bool {
+    if (this._lmmInventoryWindow.isOpen()) {
+      return false;
+    } else {
+      return untyped _Scene_Map_isMenuEnabled.call(this);
+    }
   }
 }
