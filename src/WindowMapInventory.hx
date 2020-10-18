@@ -160,14 +160,12 @@ class WindowMapInventory extends Window_Base {
   }
 
   public function processOkAndCancel() {
-    switch (Input) {
-      case _.isTriggered('ok') => true:
-        this.emit(InvEvents.CONFIRMITEM, this.currentItem());
-      // TODO: Suppress Menu when  on screen
-      case _.isTriggered('cancel') => true:
-        this.emit(InvEvents.CANCELITEM);
-      case _:
-        // Do nothing
+    if (Input.isTriggered('ok') || TouchInput.isPressed() && this.active) {
+      this.emit(InvEvents.CONFIRMITEM, this.currentItem());
+    }
+
+    if (Input.isTriggered('cancel') || TouchInput.isCancelled() && this.active) {
+      this.emit(InvEvents.CANCELITEM);
     }
   }
 

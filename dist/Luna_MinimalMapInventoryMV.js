@@ -2,7 +2,7 @@
 // Luna_MinimalMapInventoryMV.js
 //=============================================================================
 //=============================================================================
-// Build Date: 2020-10-18 14:54:17
+// Build Date: 2020-10-18 15:03:42
 //=============================================================================
 //=============================================================================
 // Made with LunaTea -- Haxe
@@ -228,7 +228,7 @@ class LunaMMInventory {
 		let _Scene_Map_processMMInventory = Scene_Map.prototype.processMMInventory
 		Scene_Map.prototype.processMMInventory = function() {
 			let item = this._lmmInventoryWindow.currentItem()
-			if(item != null) {
+			if(item != null && this._lmmInventoryWindow.isOpen()) {
 				this.processMMHelpWindow(item)
 			} else {
 				this._lmmInventoryHelpWindow.close()
@@ -250,6 +250,7 @@ class LunaMMInventory {
 			this._lmmInventoryWindow.on("cancelItem",function(_) {
 				_gthis._lmmInventoryConfirmWindow.close()
 				_gthis._lmmInventoryHelpWindow.close()
+				_gthis._lmmInventoryWindow.deactivate()
 				_gthis._lmmInventoryWindow.close()
 			})
 			this._lmmInventoryWindow.on("confirmItem",function(item) {
@@ -305,14 +306,16 @@ class LunaMMInventory {
 			let player = scene._spriteset._characterSprites[len - 1]
 			let lmmInvWindow = scene._lmmInventoryWindow
 			lmmInvWindow.move(player.x + player.width - lmmInvWindow.width / 2,player.y - lmmInvWindow.height * 2,lmmInvWindow.width,lmmInvWindow.height)
+			scene._lmmInventoryWindow.activate()
 			scene._lmmInventoryWindow.show()
 			scene._lmmInventoryWindow.open()
 		}
 	}
 	static closeInventory() {
-		console.log("src/Main.hx:80:","Close minimal inventory")
+		console.log("src/Main.hx:81:","Close minimal inventory")
 		let scene = SceneManager._scene
 		if(scene.hasOwnProperty("_lmmInventoryWindow")) {
+			scene._lmmInventoryWindow.deactivate()
 			scene._lmmInventoryWindow.close()
 			scene._lmmInventoryWindow.hide()
 		}
@@ -381,7 +384,7 @@ class Scene_$Map extends Scene_Map {
 	}
 	processMMInventory() {
 		let item = this._lmmInventoryWindow.currentItem()
-		if(item != null) {
+		if(item != null && this._lmmInventoryWindow.isOpen()) {
 			this.processMMHelpWindow(item)
 		} else {
 			this._lmmInventoryHelpWindow.close()
@@ -401,6 +404,7 @@ class Scene_$Map extends Scene_Map {
 		this._lmmInventoryWindow.on("cancelItem",function(_) {
 			_gthis._lmmInventoryConfirmWindow.close()
 			_gthis._lmmInventoryHelpWindow.close()
+			_gthis._lmmInventoryWindow.deactivate()
 			_gthis._lmmInventoryWindow.close()
 		})
 		this._lmmInventoryWindow.on("confirmItem",function(item) {
@@ -586,14 +590,11 @@ class WindowMapInventory extends Window_Base {
 		this.processSelectionOfItemMouse()
 	}
 	processOkAndCancel() {
-		let _hx_tmp
-		if(Input.isTriggered("ok") == true) {
+		if(Input.isTriggered("ok") || TouchInput.isPressed() && this.active) {
 			this.emit("confirmItem",this.currentItem())
-		} else {
-			_hx_tmp = Input.isTriggered("cancel")
-			if(_hx_tmp == true) {
-				this.emit("cancelItem")
-			}
+		}
+		if(Input.isTriggered("cancel") || TouchInput.isCancelled() && this.active) {
+			this.emit("cancelItem")
 		}
 	}
 	processSelectionOfItemsKeyboard() {

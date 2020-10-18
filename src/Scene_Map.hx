@@ -98,7 +98,7 @@ class Scene_Map extends RmScene_Map {
     // Inventory Window Hovered Over Item
     // var item = this._lmmInventoryWindow.getHoveredItem();
     var item = this._lmmInventoryWindow.currentItem();
-    if (item != null) {
+    if (item != null && this._lmmInventoryWindow.isOpen()) {
       // trace('Found Item', item.description);
       this.processMMHelpWindow(item);
     } else {
@@ -120,6 +120,7 @@ class Scene_Map extends RmScene_Map {
     this._lmmInventoryWindow.on(InvEvents.CANCELITEM, (_) -> {
       this._lmmInventoryConfirmWindow.close();
       this._lmmInventoryHelpWindow.close();
+      this._lmmInventoryWindow.deactivate();
       this._lmmInventoryWindow.close();
     });
 

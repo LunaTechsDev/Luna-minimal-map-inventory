@@ -71,6 +71,7 @@ class Main {
         + player.width
         - (lmmInvWindow.width / 2), player.y
         - (lmmInvWindow.height * 2), lmmInvWindow.width, lmmInvWindow.height);
+      scene._lmmInventoryWindow.activate();
       scene._lmmInventoryWindow.show();
       scene._lmmInventoryWindow.open();
     }
@@ -80,6 +81,7 @@ class Main {
     trace('Close minimal inventory');
     var scene: Scene_Map = Amaryllis.currentScene();
     if (Fn.hasProperty(scene, '_lmmInventoryWindow')) {
+      scene._lmmInventoryWindow.deactivate();
       scene._lmmInventoryWindow.close();
       scene._lmmInventoryWindow.hide();
     }
