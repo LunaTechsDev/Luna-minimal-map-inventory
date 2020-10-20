@@ -106,16 +106,11 @@ class WindowMapInventory extends Window_Base {
 
   public function paintItem(index: Int) {
     var rect = this.itemRectForCell(index);
-    // trace(rect.x, rect.y, rect.width, rect.height);
     this.paintCell(rect);
     this.paintCellItemIcon(rect, index);
   }
 
   public function paintCell(rect: Rectangle) {
-    // Draw Cell Background
-    // TODO: Update Bitmap to allow for drawing rectangles
-    // TODO: Update drawIcon to accept Integer
-
     this.contents.fillRect(rect.x, rect.y, rect.width, rect.height, 'white');
     this.contents.clearRect(rect.x
       + this.borderSize, rect.y
@@ -137,9 +132,7 @@ class WindowMapInventory extends Window_Base {
     // Handles properly positioning the cells based on index
     var internalIndex = index % this._maxPageItems;
     var spacing = (this.horizontalSpacing * internalIndex); // clamp(0, this.horizontalSpacing);
-    // trace(spacing);
     var x = this.cellWidth * internalIndex;
-    // trace('X Position ${x}');
     // Don't need to calculate y since row max is always 1
     var rectangle = new Rectangle(x + spacing, 0, this.cellWidth, this.cellHeight);
     return rectangle;
@@ -160,7 +153,10 @@ class WindowMapInventory extends Window_Base {
   }
 
   public function processOkAndCancel() {
-    if (Input.isTriggered('ok') || TouchInput.isPressed() && this.active && this.currentItem() != null) {
+    if (this.currentItem() != null
+      && this.active
+      && Input.isTriggered('ok')
+      || (TouchInput.isPressed() && this.mouseInSelectionRect())) {
       this.emit(InvEvents.CONFIRMITEM, this.currentItem());
     }
 
@@ -179,6 +175,10 @@ class WindowMapInventory extends Window_Base {
       case _:
         // Do nothing
     }
+  }
+
+  public function mouseInSelectionRect() {
+    return processSelectionOfItemMouse() != null;
   }
 
   public function processSelectionOfItemMouse() {

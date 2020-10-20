@@ -48,7 +48,7 @@ class Scene_Map extends RmScene_Map {
   }
 
   public function createMapInvConfirmWindow() {
-    this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0, 0, 200, 75);
+    this._lmmInventoryConfirmWindow = new WindowMapInvConfirm(0, 0, 200, 125);
     this.setConfirmWindowHandlers();
     this.addWindow(this._lmmInventoryConfirmWindow);
     this._lmmInventoryConfirmWindow.hide();
@@ -138,6 +138,7 @@ class Scene_Map extends RmScene_Map {
       this._lmmInventoryConfirmWindow.activate();
       this._lmmInventoryConfirmWindow.show();
       this._lmmInventoryConfirmWindow.open();
+      this._lmmInventoryConfirmWindow.refresh();
     });
   }
 
