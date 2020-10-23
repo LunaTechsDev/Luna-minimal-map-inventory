@@ -25,6 +25,17 @@ A plugin that creates a inventory menu on the map scene<LunaMMI>.
 
 ==== How To Use ====
 
+==== Script Calls ====
+
+Opens the Inventory
+LunaMMInventory.openInventory()
+
+Closes the Inventory
+LunaMMInventory.closeInventory()
+
+Checks if the Inventory is open
+LunaMMInventory.isInventoryOpen()
+
 
 
 MIT License
