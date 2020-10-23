@@ -5,11 +5,6 @@
 
 @target MV MZ
 
-@param linkWindows
-@text Link Windows
-@desc The list of link windows on your title screen.
-@type struct<LinkWindow>[]
-
 @param maxPageItems
 @text Max Page Items
 @desc The maximum numer of page items
@@ -56,45 +51,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE
-*/
-
-/*~struct~Empty:
-*
-* @param link
-* @text Link 
-* @desc The link for the link window
-* @default google.com
-*
-* @param image
-* @text Image Name
-* @desc Name of an image in your pictures folder
-* @default Actor1_1
-*
-* @param x
-* @text X Position
-* @desc The X position of the link window
-* @default 0
-* 
-* @param y
-* @text Y Position
-* @desc The Y position of the link window
-* @default 0
-*
-* @param width
-* @text Width
-* @desc The width of the link window
-* @default 100
-*
-* @param height
-* @text Height 
-* @desc The height of the link window
-* @default 100
-*
-* @param backgroundType
-* @text Background Type 0 -> Opaque 1 -> Semitransparent 2 -> Transparent
-* @desc The background type of the link window
-* @default 2
-* 
 */
 
 
