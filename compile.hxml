@@ -13,7 +13,7 @@
 -D analyzer-optimize 
 
 # Haxe Source Map
---debug
+# --debug
 # --no-inline
 # --no-opt
 # -D keep_inline_positions

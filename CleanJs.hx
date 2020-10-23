@@ -31,7 +31,11 @@ class CleanJs {
     final distDir = "dist";
     final madeWith = "Made with LunaTea -- Haxe";
     final allFiles = FileSystem.readDirectory(distDir);
-    allFiles.filter((file) -> !file.contains(".map")).iter((file) -> {
+
+    var resultFiles = allFiles.filter((file) -> !file.contains(".map") || !file.contains('DS_'));
+    resultFiles.shift(); // Remove hidden DS_Store file
+    trace(resultFiles);
+    resultFiles.iter((file) -> {
       final fileNameStr = '//=============================================================================
 // $file
 //=============================================================================\n';
@@ -44,8 +48,10 @@ class CleanJs {
       final buildDate = '//=============================================================================
 // $buildStr
 //=============================================================================\n';
+      trace('Create Path');
       final filePath = '$distDir/$file';
-      final contents = File.read(filePath).readAll().toString();
+      final contents = File.getContent(filePath);
+
       final cleanContents = contents.split("\n").map((lineContent) -> {
         if (lineContent.contains("+=")
           || (lineContent.contains("if(") && !lineContent.contains("_$LTGlobals_$"))
@@ -66,6 +72,7 @@ class CleanJs {
 
       final newContent = fileNameStr + buildDate + madeWithStr + attributionStr + "\n" + cleanContents;
       // final newContent = cleanContents;
+
       File.write(filePath).writeString(newContent);
       var gamePath: String = generatePluginGamePath();
       trace(gamePath);
