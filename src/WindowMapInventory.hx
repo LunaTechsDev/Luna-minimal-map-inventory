@@ -148,8 +148,10 @@ class WindowMapInventory extends Window_Base {
   public override function update() {
     super.update();
     this.processOkAndCancel();
-    this.processSelectionOfItemsKeyboard();
-    this.processSelectionOfItemMouse();
+    if (this.active) {
+      this.processSelectionOfItemsKeyboard();
+      this.processSelectionOfItemMouse();
+    }
   }
 
   public function processOkAndCancel() {

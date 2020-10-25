@@ -1,3 +1,4 @@
+import rm.objects.Game_Action;
 import rm.types.RPG.BaseItem;
 import Types.InvEvents;
 import rm.managers.DataManager;
@@ -64,9 +65,16 @@ class Scene_Map extends RmScene_Map {
     var currentItem = this._lmmInventoryWindow.currentItem();
 
     if (currentItem != null) {
+      var mainActor = Globals.GameParty.members()[0];
       switch (currentItem) {
         case DataManager.isItem(_) => true:
-          Globals.GameParty.members()[0].useItem(cast currentItem);
+          // TODO: Turn this into an extension function
+          mainActor.useItem(cast currentItem);
+          var action = new Game_Action(mainActor, false);
+          action.setItemObject(cast currentItem);
+          trace(this.myItemTarget(mainActor, cast currentItem));
+          action.apply(cast this.myItemTarget(mainActor, cast currentItem)[0]);
+          action.applyGlobal();
         case DataManager.isArmor(_) || DataManager.isWeapon(_) => true:
           var equipItem: EquipItem = cast currentItem;
           Globals.GameParty.members()[0].changeEquip(equipItem.etypeId, equipItem);
@@ -79,7 +87,22 @@ class Scene_Map extends RmScene_Map {
     this.closeMMConfirmWindow();
   }
 
+  public function myItemTarget(user, item) {
+    var action = new Game_Action(user, false);
+    action.setItemObject(item);
+    if (!action.isForFriend()) {
+      return [];
+    } else if (action.isForAll()) {
+      var result = Globals.GameParty.members();
+      return result;
+    } else {
+      var result = [Globals.GameParty.members()[0]];
+      return result;
+    }
+  }
+
   public function cancelItemUse() {
+    this._lmmInventoryWindow.activate();
     this.closeMMConfirmWindow();
   }
 
@@ -135,6 +158,7 @@ class Scene_Map extends RmScene_Map {
       var invWindow = this._lmmInventoryWindow;
 
       this._lmmInventoryConfirmWindow.move(invWindow.x, invWindow.y + invWindow.height, this._lmmInventoryConfirmWindow.width, this._lmmInventoryConfirmWindow.height);
+      this._lmmInventoryWindow.deactivate();
       this._lmmInventoryConfirmWindow.activate();
       this._lmmInventoryConfirmWindow.show();
       this._lmmInventoryConfirmWindow.open();
