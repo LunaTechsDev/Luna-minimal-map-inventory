@@ -6,8 +6,8 @@
 
 @param maxPageItems
 @text Max Page Items
-@desc The maximum numer of page items
-@default 8
+@desc The maximum numer of page items (Currently supports up to 7)
+@default 7
 
 @param helpFontSize
 @text Help Font Size

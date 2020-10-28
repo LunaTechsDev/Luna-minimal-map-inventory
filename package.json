@@ -2,7 +2,7 @@
   "name": "luna-plugin",
   "version": "1.0.0",
   "devDependencies": {
-    "@lunatechs/lunatea-napkin": "^1.1.0"
+    "@lunatechs/lunatea-napkin": "^1.5.1"
   },
   "dependencies": {
     "lix": "^15.9.1"

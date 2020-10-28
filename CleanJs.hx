@@ -32,7 +32,7 @@ class CleanJs {
     final madeWith = "Made with LunaTea -- Haxe";
     final allFiles = FileSystem.readDirectory(distDir);
 
-    var resultFiles = allFiles.filter((file) -> !file.contains(".map") || !file.contains('DS_'));
+    var resultFiles = allFiles.filter((file) -> !file.contains(".map") && !file.contains('DS') || !file.contains('DS_'));
     resultFiles.shift(); // Remove hidden DS_Store file
     trace(resultFiles);
     resultFiles.iter((file) -> {
@@ -73,7 +73,7 @@ class CleanJs {
       final newContent = fileNameStr + buildDate + madeWithStr + attributionStr + "\n" + cleanContents;
       final newContent = cleanContents;
 
-      File.write(filePath).writeString(newContent);
+      File.write(filePath).writeString(contents);
       var gamePath: String = generatePluginGamePath();
       trace(gamePath);
       if (gamePath.length > 0) {
